@@ -4,8 +4,9 @@ class ArbolB(object):
 	def __init__ (self):
 		self.raiz = Pagina.Pagina()
 		self.orden = 5
+		self.medio = self.orden / 2
 
-	def buscarNodo(self, actual, nombre, indice):
+	def __buscarNodo(self, actual, nombre, indice):
 		if nombre < actual.nodos[1].nombre:
 			return False, 0
 		else:
@@ -19,7 +20,7 @@ class ArbolB(object):
 			return actual, indice
 		else:
 			esta = False
-			esta, indice = self.buscarNodo(actual, nombre, indice)
+			esta, indice = self.__buscarNodo(actual, nombre, indice)
 			if esta:
 				return actual, indice
 			else:
@@ -27,14 +28,14 @@ class ArbolB(object):
 
 	def crearCarpeta(self, nombre):
 		nueva = NodoB.NodoB(nombre)
-		self.raiz = self.crearCarpeta(self.raiz, nueva)
+		self.raiz = self.__crearCarpeta(self.raiz, nueva)
 
-	def crearCarpeta(self, raiz, carpeta):
+	def __crearCarpeta(self, raiz, carpeta):
 		subir = False
 		mediana = NodoB.NodoB("")
 		nueva = Pagina.Pagina()
 		raiz_ = Pagina.Pagina()
-		subir, mediana, nueva, raiz_ = self.mover(raiz, carpeta, mediana, nueva)
+		subir, mediana, nueva, raiz_ = self.__mover(raiz, carpeta, mediana, nueva)
 		if subir:
 			auxiliar = Pagina.Pagina()
 			auxiliar.cuenta = 1
@@ -44,44 +45,169 @@ class ArbolB(object):
 			raiz_ = auxiliar
 		return raiz_
 
-	def mover(self, actual, carpeta, mediana, nueva):
+	def __mover(self, actual, carpeta, mediana, nueva):
 		subir = False
 		if actual == None or actual.estaVacia():
 			return True, carpeta, None, None
 		else:
 			indice = 0
 			esta = False
-			esta, indice = self.buscarNodo(actual, carpeta.nombre, indice)
+			esta, indice = self.__buscarNodo(actual, carpeta.nombre, indice)
 			if esta:
-				print "Carpeta duplicada: '" + str(carpeta.nombre) + "'."
+				print "Nombre de carpeta duplicada: '" + str(carpeta.nombre) + "'."
 				return False, None, None, self.raiz
-			subir, mediana, nueva, actual.ramas[indice] = self.mover(actual.ramas[indice], carpeta, mediana, nueva)
+			subir, mediana, nueva, actual.ramas[indice] = self.__mover(actual.ramas[indice], carpeta, mediana, nueva)
 			if subir:
 				if actual.estaLlena():
-					actual, mediana, nueva = self.dividirPagina(actual, mediana, nueva, indice)
+					actual, mediana, nueva = self.__dividirPagina(actual, mediana, nueva, indice)
 				else:
-					self.insertarEnHoja(actual, mediana, nueva, indice)
+					actual = self.__insertarEnHoja(actual, mediana, nueva, indice)
 					return False, None, None self.raiz
 			return subir, mediana, nueva, actual
 
-	def dividirPagina(self, actual, mediana, nueva, indice):
+	def __dividirPagina(self, actual, mediana, nueva, indice):
 		posicion = 0
-		if (Indice <= self.orden / 2):
-			posicion = self.orden / 2
+		if (indice <= self.medio):
+			posicion = self.medio
 		else:
-			posicion = (self.orden / 2) + 1
+			posicion = self.medio + 1
 		auxiliar = Pagina.Pagina()
 		contador = posicion + 1
 		while(contador < self.orden):
 			auxiliar.nodos[contador - posicion] = actual.nodos[contador]
 			auxiliar.ramas[contador - posicion] = actual.ramas[contador]
 			contador = contador + 1
-		auxiliar.cuenta = self.orden - 1 - posicion
+		auxiliar.cuenta = self.orden - (1 + posicion)
 		actual.cuenta = posicion
-		if (Indice <= self.orden / 2):
-			self.insertarEnHoja(actual, mediana, nueva, indice)
+		if (indice <= self.medio):
+			actual = self.__insertarEnHoja(actual, mediana, nueva, indice)
 		else:
-			self.insertarEnHoja(actual, mediana, nueva, indice - posicion)
+			auxiliar = self.__insertarEnHoja(auxiliar, mediana, nueva, indice - posicion)
 		auxiliar.ramas[0] = actual.ramas[actual.cuenta]
 		actual.cuenta = actual.cuenta - 1
 		return actual, actual.nodos[actual.cuenta], auxiliar
+
+	def __insertarEnHoja(self, actual, nuevo, derecha, indice):
+		posicion = actual.cuenta
+		while (posicion >= indice + 1):
+			actual.nodos[posicion + 1] = actual.nodos[posicion]
+			actual.ramas[posicion + 1] = actual.ramas[posicion]
+			posicion = posicion - 1
+		actual.nodos[indice + 1] = nuevo
+		actual.ramas[posicion + 1] = derecha
+		actual.cuenta = actual.cuenta + 1
+		return actual
+
+	def eliminarCarpeta(self, nombre):
+		self.raiz = self.__eliminarCarpeta(self.raiz, nombre)
+
+	def __eliminarCarpeta(self, raiz, nombre):
+		encontrado = False
+		raiz_ = Pagina.Pagina()
+		encontrado, raiz_ = self.__eliminarNodo(raiz, nombre, encontrado)
+		if encontrado:
+			print "Carpeta "+ ID + " fue eliminada."
+			if raiz_.estaVacia():
+				raiz_ = raiz_.ramas[0]
+		else:
+			print "No existe la carpeta."
+			raiz_ = self.raiz
+		return raiz_
+
+	def __eliminarNodo(self, actual, nombre, encontrado):
+		indice = 0
+		if actual == None:
+			return False, actual
+		else:
+			encontrado, indice = self.__buscarNodo(actual, nombre, indice)
+			if encontrado:
+				if actual.ramas[indice - 1] == None:
+					actual = self.__remover(actual, indice)
+				else:
+					actual = self.__porSucesor(actual, indice)
+					encontrado, actual.ramas[indice] = self.__eliminarNodo(actual.ramas[indice], actual.nodos[indice].nombre, encontrado)
+			else:
+				encontrado, actual.ramas[indice] = self.__eliminarNodo(actual.ramas[indice], nombre, encontrado)
+			if actual.ramas[indice] != None and actual.ramas[indice].cuenta < self.medio:
+				actual = self.__restaurar(actual, indice)
+			return encontrado, actual
+
+	def __remover(self, actual, indice):
+		indice = indice + 1
+		while (indice <= actual.cuenta):
+			actual.nodos[indice - 1] = actual.nodos[indice]
+			actual.ramas[indice - 1] = actual.ramas[indice]
+			indice = indice + 1
+		actual.cuenta = actual.cuenta - 1
+		return actual
+
+	def __porSucesor(self, actual, indice):
+		auxiliar = actual.ramas[indice]
+		while (auxiliar.ramas[0] != None):
+			auxiliar = auxiliar.ramas[0]
+		actual.nodos[indice] = auxiliar.nodos[1]
+		return actual
+
+	def __restaurar(self, actual, indice):
+		if indice > 0:
+			if actual.ramas[indice - 1].cuenta > self.medio:
+				actual = self.__moverDerecha(actual, indice)
+			else:
+				self.__combinar(actual, indice)
+		else:
+			if actual.ramas[1].cuenta > self.medio:
+				actual = self.__moverIzquierda(actual, 1)
+			else:
+				self.__combinar(actual, 1)
+		return actual
+
+	def __moverDerecha(self, actual, indice):
+		problema = actual.ramas[indice]
+		izquierda = actual.ramas[indice - 1]
+		contador = problema.cuenta
+		while(contador >= 1):
+			problema.nodos[contador + 1] = problema.nodos[contador]
+			problema.ramas[contador + 1] = problema.ramas[contador]
+			contador = contador - 1
+		problema.cuenta = problema.cuenta + 1
+		problema.ramas[1] = problema.ramas[0]
+		problema.nodos[1] = actual.nodos[indice]
+		actual.nodos[indice] = izquierda.nodos[izquierda.cuenta]
+		problema.ramas[0] = izquierda.ramas[izquierda.cuenta]
+		izquierda.cuenta = izquierda.cuenta - 1
+		return actual
+
+	def __moverIzquierda(self, actual, indice):
+		problema = actual.ramas[indice - 1]
+		derecha = actual.ramas[indice]
+		problema.cuenta = problema.cuenta + 1
+		problema.nodos[problema.cuenta] = actual.nodos[indice]
+		problema.ramas[problema.cuenta] = derecha.ramas[0]
+		actual.nodos[indice] = derecha.nodos[1]
+		derecha.ramas[1] = derecha.ramas[0]
+		derecha.cuenta = derecha.cuenta - 1
+		contador = 1
+		while (contador <= derecha.cuenta):
+			derecha.nodos[contador] = derecha.nodos[contador + 1]
+			derecha.ramas[contador] = derecha.ramas[contador + 1]
+			contador = contador + 1
+		return actual
+
+	def __combinar(self, padre, indice):
+		auxiliar = padre.ramas[indice]
+		izquierdo = padre.ramas[indice - 1]
+		izquierdo.cuenta = izquierdo.cuenta - 1
+		izquierdo.nodos[izquierdo.cuenta] = padre.nodos[indice]
+		izquierdo.ramas[izquierdo.cuenta] = auxiliar.ramas[0]
+		contador = 1
+		while(contador <= auxiliar.cuenta):
+			izquierdo.cuenta = izquierdo.cuenta + 1
+			izquierdo.nodos[izquierdo.cuenta] = auxiliar.nodos[contador]
+			izquierdo.ramas[izquierdo.cuenta] = auxiliar.ramas[contador]
+			contador = contador + 1
+		contador = indice
+		while(contador <= padre.cuenta):
+			padre.nodos[contador] = padre.nodos[contador + 1]
+			padre.ramas[contador] = padre.ramas[contador + 1]
+			contador = contador + 1
+		padre.cuenta = padre.cuenta - 1
