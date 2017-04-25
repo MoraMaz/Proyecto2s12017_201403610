@@ -1,4 +1,4 @@
-import ArbolAvl, NodoAvl, NodoB, Pagina
+import ArbolAvl, NodoAvl, NodoB, Pagina, subprocess
 
 class ArbolB(object):
 	def __init__ (self):
@@ -211,3 +211,38 @@ class ArbolB(object):
 			padre.ramas[contador] = padre.ramas[contador + 1]
 			contador = contador + 1
 		padre.cuenta = padre.cuenta - 1
+
+	def graficar(self):
+		if self.raiz == None or self.raiz.estaVacia():
+			return
+		grafo = "digraph ArbolB{\n\trankdir = UD;\n\tgraph [ratio = fill];\n\tnode [shape = plaintext]\n\t"
+		grafo = self.__enlistar(self.raiz, grafo) + "\n\n\t"
+		grafo = self.__enlazar(self.raiz, grafo) + "\n}"
+		Archivo = open('/home/moramaz/Escritorio/ArbolB.dot', 'w')
+		Archivo.write(grafo)
+		Archivo.close()
+		subprocess.call(['dot', '/home/moramaz/Escritorio/ArbolB.dot', '-o', '/home/moramaz/Escritorio/ArbolB.png', '-Tpng', '-Gcharset=utf8']) 
+
+	def __enlistar(self, raiz, grafo):
+		if raiz == None or raiz.estaVacia():
+			return grafo
+		grafo = grafo + "N" + raiz.nodos[1].nombre + " [label=<\n\t\t<TABLE ALIGN = \"LEFT\">\n\t\t\t<TR>\n"
+		contador = 1
+		while(contador < self.orden):
+			if contador <= raiz.cuenta:
+				grafo = grafo + "\t\t\t\t<TD> " + raiz.nodos[contador].nombre + " \t\t\t\t</TD>\n"
+			else:
+				grafo = grafo + "\t\t\t\t<TD>  \t\t\t\t</TD>\n"
+		grafo = grafo + "\t\t\t</TR>\n\t\t</TABLE>\n\t>, ];\n\t"
+		for i in raiz.ramas:
+			grafo = self.__enlistar(i, grafo)
+		return grafo
+
+	def __enlazar(self, raiz, grafo):
+		if raiz == None or raiz.estaVacia():
+			return grafo
+		for i in raiz.ramas:
+			grafo = self.enlazar(i, grafo)
+			if i != None:
+				grafo = grafo + "N" + raiz.nodos[1].nombre + " -> N" + i.nodos[1].nombre + ";\n\t"
+		return grafo

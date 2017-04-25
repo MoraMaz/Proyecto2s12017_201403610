@@ -132,7 +132,7 @@ class ArbolAvl(object):
 	def __listar(self, raiz, cadena):
 		if(raiz != None):
 			cadena += "n" + str("".join(raiz.nombre.split("."))) + " [label = \"" + str(raiz.nombre) + "\"];\n"
-#			cadena += "n" + str("".join(raiz.nombre.split("."))) + " [label = \"" + str(raiz.nombre) + "\n" + str(raiz.archivo) + "\"];\n" # para que en el nodo salga la informacion del archivo
+			#cadena += "n" + str("".join(raiz.nombre.split("."))) + " [label = \"" + str(raiz.nombre) + "\n" + str(raiz.archivo) + "\"];\n" # para que en el nodo salga la informacion del archivo
 			if(raiz.izquierdo != None and raiz.derecho != None):
 				cadena = self.__listar(raiz.izquierdo.raiz, cadena)
 				cadena = self.__listar(raiz.derecho.raiz, cadena)
