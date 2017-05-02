@@ -18,64 +18,58 @@ class ArbolAvl(object):
 			self.raiz.izquierdo.insertar(nombre, archivo)
 		else:
 			print "El archivo ya existe."
-		self.balancear()
+		self.__balancear()
 
-	def balancear(self):
-		self.actualizarAlturas(recursivo = False)
-		self.actualizarEquilibrio(False)
+	def __balancear(self):
+		self.__actualizarAlturas(recursivo = False)
+		self.__actualizarEquilibrio(False)
 		while self.equilibrio < -1 or self.equilibrio > 1:
 			if self.equilibrio > 1:
 				if self.raiz.izquierdo.equilibrio < 0:
-					self.raiz.izquierdo.rotacionIzquierda()
-					self.actualizarAlturas()
-					self.actualizarEquilibrio()
-				raiz = self.raiz
-				self.raiz = raiz.izquierdo.raiz
-				raiz.izquierdo.raiz = self.raiz.derecho.raiz
-				self.raiz.derecho.raiz = raiz
-				self.actualizarAlturas()
-				self.actualizarEquilibrio()
+					self.raiz.izquierdo.__rotacionIzquierda()
+					self.__actualizarAlturas()
+					self.__actualizarEquilibrio()
+				self.__rotacionDerecha()
+				self.__actualizarAlturas()
+				self.__actualizarEquilibrio()
 			if self.equilibrio < -1:
 				if self.raiz.derecho.equilibrio > 0:
-					self.raiz.derecho.rotacionDerecha()
-					self.actualizarAlturas()
-					self.actualizarEquilibrio()
-				raiz = self.raiz
-				self.raiz = raiz.derecho.raiz
-				raiz.derecho.raiz = self.raiz.izquierdo.raiz
-				self.raiz.izquierdo.raiz = raiz
-				self.actualizarAlturas()
-				self.actualizarEquilibrio()
+					self.raiz.derecho.__rotacionDerecha()
+					self.__actualizarAlturas()
+					self.__actualizarEquilibrio()
+				self.__rotacionIzquierda()
+				self.__actualizarAlturas()
+				self.__actualizarEquilibrio()
 
-	def actualizarAlturas(self, recursivo = True):
+	def __actualizarAlturas(self, recursivo = True):
 		if self.raiz == None:
 			self.altura = -1
 		else:
 			if recursivo:
 				if self.raiz.izquierdo != None:
-					self.raiz.izquierdo.actualizarAlturas()
+					self.raiz.izquierdo.__actualizarAlturas()
 				if self.raiz.derecho != None:
-					self.raiz.derecho.actualizarAlturas()
+					self.raiz.derecho.__actualizarAlturas()
 			self.altura = max(self.raiz.izquierdo.altura, self.raiz.derecho.altura) + 1
 
-	def actualizarEquilibrio(self, recursivo = True):
+	def __actualizarEquilibrio(self, recursivo = True):
 		if self.raiz == None:
 			self.equilibrio = 0
 		else:
 			if recursivo:
 				if self.raiz.izquierdo != None:
-					self.raiz.izquierdo.actualizarEquilibrio()
+					self.raiz.izquierdo.__actualizarEquilibrio()
 				if self.raiz.derecho != None:
-					self.raiz.derecho.actualizarEquilibrio()
+					self.raiz.derecho.__actualizarEquilibrio()
 			self.equilibrio = self.raiz.izquierdo.altura - self.raiz.derecho.altura
 
-	def rotacionDerecha(self):
+	def __rotacionDerecha(self):
 		raiz = self.raiz
 		self.raiz = raiz.izquierdo.raiz
 		raiz.izquierdo.raiz = self.raiz.derecho.raiz
 		self.raiz.derecho.raiz = raiz
 
-	def rotacionIzquierda(self):
+	def __rotacionIzquierda(self):
 		raiz = self.raiz
 		self.raiz = raiz.derecho.raiz
 		raiz.derecho.raiz = self.raiz.izquierdo.raiz
@@ -102,18 +96,18 @@ class ArbolAvl(object):
 				self.raiz.derecho.eliminar(nombre)
 			elif self.raiz.nombre > nombre:
 				self.raiz.izquierdo.eliminar(nombre)
-			self.balancear()
+			self.__balancear()
 
-	def obtenerContenido(self, nombre):
+	def __obtenerContenido(self, nombre):
 		if self.raiz.nombre == nombre:
 			return self.raiz.archivo
 		elif self.raiz.nombre < nombre:
-			return self.raiz.derecho.obtenerContenido(nombre)
+			return self.raiz.derecho.__obtenerContenido(nombre)
 		elif self.raiz.nombre > nombre:
-			return self.raiz.izquierdo.obtenerContenido(nombre)
+			return self.raiz.izquierdo.__obtenerContenido(nombre)
 
 	def modificar(self, anterior, nuevo):
-		contenido = self.obtenerContenido(anterior)
+		contenido = self.__obtenerContenido(anterior)
 		self.eliminar(anterior)
 		self.insertar(nuevo, contenido)
 
@@ -154,7 +148,7 @@ class ArbolAvl(object):
 
 tree = ArbolAvl()
 # descomentando uno a uno se ve el proceso
-tree.insertar("hola.jpg", "hola1")
+#tree.insertar("hola.jpg", "hola1")
 #tree.insertar("hola.png", "hola2")
 #tree.insertar("hola.txt", "hola3")
 #tree.insertar("hola.zip", "hola4")

@@ -1,4 +1,4 @@
-import ArbolAvl, NodoAvl, NodoB, Pagina, subprocess
+import NodoB, Pagina, subprocess
 
 class ArbolB(object):
 	def __init__ (self):
@@ -26,11 +26,11 @@ class ArbolB(object):
 			else:
 				return self.buscar(actual, nombre, indice)
 
-	def crearCarpeta(self, nombre):
+	def insertar(self, nombre):
 		nueva = NodoB.NodoB(nombre)
-		self.raiz = self.__crearCarpeta(self.raiz, nueva)
+		self.raiz = self.__insertar(self.raiz, nueva)
 
-	def __crearCarpeta(self, raiz, carpeta):
+	def __insertar(self, raiz, carpeta):
 		subir = False
 		mediana = NodoB.NodoB("")
 		nueva = Pagina.Pagina()
@@ -62,7 +62,7 @@ class ArbolB(object):
 					actual, mediana, nueva = self.__dividirPagina(actual, mediana, nueva, indice)
 				else:
 					actual = self.__insertarEnHoja(actual, mediana, nueva, indice)
-					return False, None, None self.raiz
+					return False, mediana, nueva, actual
 			return subir, mediana, nueva, actual
 
 	def __dividirPagina(self, actual, mediana, nueva, indice):
@@ -77,15 +77,16 @@ class ArbolB(object):
 			auxiliar.nodos[contador - posicion] = actual.nodos[contador]
 			auxiliar.ramas[contador - posicion] = actual.ramas[contador]
 			contador = contador + 1
-		auxiliar.cuenta = self.orden - (1 + posicion)
+		auxiliar.cuenta = (self.orden - 1) - posicion
 		actual.cuenta = posicion
 		if (indice <= self.medio):
 			actual = self.__insertarEnHoja(actual, mediana, nueva, indice)
 		else:
 			auxiliar = self.__insertarEnHoja(auxiliar, mediana, nueva, indice - posicion)
+		mediana = actual.nodos[actual.cuenta]
 		auxiliar.ramas[0] = actual.ramas[actual.cuenta]
 		actual.cuenta = actual.cuenta - 1
-		return actual, actual.nodos[actual.cuenta], auxiliar
+		return actual, mediana, auxiliar
 
 	def __insertarEnHoja(self, actual, nuevo, derecha, indice):
 		posicion = actual.cuenta
@@ -98,10 +99,10 @@ class ArbolB(object):
 		actual.cuenta = actual.cuenta + 1
 		return actual
 
-	def eliminarCarpeta(self, nombre):
-		self.raiz = self.__eliminarCarpeta(self.raiz, nombre)
+	def eliminar(self, nombre):
+		self.raiz = self.__eliminar(self.raiz, nombre)
 
-	def __eliminarCarpeta(self, raiz, nombre):
+	def __eliminar(self, raiz, nombre):
 		encontrado = False
 		raiz_ = Pagina.Pagina()
 		encontrado, raiz_ = self.__eliminarNodo(raiz, nombre, encontrado)
@@ -212,37 +213,92 @@ class ArbolB(object):
 			contador = contador + 1
 		padre.cuenta = padre.cuenta - 1
 
-	def graficar(self):
-		if self.raiz == None or self.raiz.estaVacia():
-			return
-		grafo = "digraph ArbolB{\n\trankdir = UD;\n\tgraph [ratio = fill];\n\tnode [shape = plaintext]\n\t"
-		grafo = self.__enlistar(self.raiz, grafo) + "\n\n\t"
-		grafo = self.__enlazar(self.raiz, grafo) + "\n}"
-		Archivo = open('/home/moramaz/Escritorio/ArbolB.dot', 'w')
-		Archivo.write(grafo)
-		Archivo.close()
-		subprocess.call(['dot', '/home/moramaz/Escritorio/ArbolB.dot', '-o', '/home/moramaz/Escritorio/ArbolB.png', '-Tpng', '-Gcharset=utf8']) 
+	def modificar(self, anterior, actual):
+		#falta pensarlo :'v
 
-	def __enlistar(self, raiz, grafo):
+	def graficar(self):
+		if self.raiz != None or not self.raiz.estaVacia():
+			cadena = "digraph ArbolB{\n\trankdir = UD;\n\tgraph [ratio = fill];\n\tnode [shape = plaintext]\n\t"
+			cadena = self.__enlistar(self.raiz, cadena)
+			cadena = cadena + "\n\n\t"
+			cadena = self.__enlazar(self.raiz, cadena)
+			cadena = cadena + "\n}"
+			Archivo = open('/home/moramaz/Escritorio/ArbolB.dot', 'w')
+			Archivo.write(cadena)
+			Archivo.close()
+			subprocess.call(['dot', '/home/moramaz/Escritorio/ArbolB.dot', '-o', '/home/moramaz/Escritorio/ArbolB.png', '-Tpng', '-Gcharset=utf8']) 
+
+	def __enlistar(self, raiz, cadena):
 		if raiz == None or raiz.estaVacia():
-			return grafo
-		grafo = grafo + "N" + raiz.nodos[1].nombre + " [label=<\n\t\t<TABLE ALIGN = \"LEFT\">\n\t\t\t<TR>\n"
+			return cadena
+		cadena = cadena + "N" + raiz.nodos[1].id + " [label=<\n\t\t<TABLE ALIGN = \"LEFT\">\n\t\t\t<TR>\n"
 		contador = 1
 		while(contador < self.orden):
 			if contador <= raiz.cuenta:
-				grafo = grafo + "\t\t\t\t<TD> " + raiz.nodos[contador].nombre + " \t\t\t\t</TD>\n"
+				cadena = cadena + "\t\t\t\t<TD> " + raiz.nodos[contador].nombre + " \t\t\t\t</TD>\n"
 			else:
-				grafo = grafo + "\t\t\t\t<TD>  \t\t\t\t</TD>\n"
-		grafo = grafo + "\t\t\t</TR>\n\t\t</TABLE>\n\t>, ];\n\t"
-		for i in raiz.ramas:
-			grafo = self.__enlistar(i, grafo)
-		return grafo
+				cadena = cadena + "\t\t\t\t<TD>  \t\t\t\t</TD>\n"
+			contador = contador + 1
+		cadena = cadena + "\t\t\t</TR>\n\t\t</TABLE>\n\t>, ];\n\t"
+		auxiliar = raiz.ramas[0]
+		while(auxiliar != None):
+			if auxiliar == raiz.ramas[0]:
+				cadena = self.__enlistar(auxiliar, cadena)
+				auxiliar = raiz.ramas[1]
+			elif auxiliar == raiz.ramas[1]:
+				cadena = self.__enlistar(auxiliar, cadena)
+				auxiliar = raiz.ramas[2]
+			elif auxiliar == raiz.ramas[2]:
+				cadena = self.__enlistar(auxiliar, cadena)
+				auxiliar = raiz.ramas[3]
+			elif auxiliar == raiz.ramas[3]:
+				cadena = self.__enlistar(auxiliar, cadena)
+				auxiliar = raiz.ramas[4]
+			elif auxiliar == raiz.ramas[4]:
+				cadena = self.__enlistar(auxiliar, cadena)
+				break
+		return cadena
 
-	def __enlazar(self, raiz, grafo):
+	def __enlazar(self, raiz, cadena):
 		if raiz == None or raiz.estaVacia():
-			return grafo
-		for i in raiz.ramas:
-			grafo = self.enlazar(i, grafo)
-			if i != None:
-				grafo = grafo + "N" + raiz.nodos[1].nombre + " -> N" + i.nodos[1].nombre + ";\n\t"
-		return grafo
+			return cadena
+		auxiliar = raiz.ramas[0]
+		while(auxiliar != None):
+			if auxiliar == raiz.ramas[0]:
+				cadena = self.__enlazar(auxiliar, cadena)
+				if auxiliar != None:
+					cadena = cadena + "N" + raiz.nodos[1].id + " -> N" + auxiliar.nodos[1].id + ";\n\t"
+				auxiliar = raiz.ramas[1]
+			elif auxiliar == raiz.ramas[1]:
+				cadena = self.__enlazar(auxiliar, cadena)
+				if auxiliar != None:
+					cadena = cadena + "N" + raiz.nodos[1].id + " -> N" + auxiliar.nodos[1].id + ";\n\t"
+				auxiliar = raiz.ramas[2]
+			elif auxiliar == raiz.ramas[2]:
+				cadena = self.__enlazar(auxiliar, cadena)
+				if auxiliar != None:
+					cadena = cadena + "N" + raiz.nodos[1].id + " -> N" + auxiliar.nodos[1].id + ";\n\t"
+				auxiliar = raiz.ramas[3]
+			elif auxiliar == raiz.ramas[3]:
+				cadena = self.__enlazar(auxiliar, cadena)
+				if auxiliar != None:
+					cadena = cadena + "N" + raiz.nodos[1].id + " -> N" + auxiliar.nodos[1].id + ";\n\t"
+				auxiliar = raiz.ramas[4]
+			elif auxiliar == raiz.ramas[4]:
+				cadena = self.__enlazar(auxiliar, cadena)
+				if auxiliar != None:
+					cadena = cadena + "N" + raiz.nodos[1].id + " -> N" + auxiliar.nodos[1].id + ";\n\t"
+					break
+		return cadena
+
+Arbol = ArbolB()
+# aca tambien, descomentando uno a uno se ve el proceso
+#Arbol.insertar("nueva carpeta")
+#Arbol.insertar("nueva carpeta 1")
+#Arbol.insertar("nueva carpeta 2")
+#Arbol.insertar("carpeta")
+#Arbol.insertar("carpeta nueva")
+#Arbol.insertar("carpeta nueva 2")
+#Arbol.insertar("carpeta nueva (2)")
+#Arbol.insertar("carpeta nueva (2) - copia")
+Arbol.graficar()

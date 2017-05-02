@@ -1,11 +1,11 @@
 class Pagina(object):
 	def __init__(self):
-		self.nodos = None
-		self.ramas = None
+		self.nodos = [None, None, None, None, None]
+		self.ramas = [None, None, None, None, None]
 		self.cuenta = 0
 
 	def estaLlena(self):
-		return cuenta == 4
+		return (self.cuenta == 4)
 
 	def estaVacia(self):
-		return cuenta == 0
+		return (self.cuenta == 0)
